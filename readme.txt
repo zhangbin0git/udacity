@@ -1,5 +1,2 @@
-<<<<<<< HEAD
- good morning!!!
-=======
+good morning!!!
 hello world!!!
->>>>>>> origin/master
