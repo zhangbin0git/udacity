@@ -106,3 +106,4 @@ venv.bak/
 # myparameter
 .idea
 venv
+__pycache__
