@@ -3,6 +3,7 @@ from copy import deepcopy
 
 from vector import Vector
 from plane import Plane
+from parameterization import Parameterization
 
 getcontext().prec = 30
 
@@ -147,6 +148,57 @@ class LinearSystem():
             n = self[k].normal_vector.coordinates
             alpha = -(n[col])
             self.add_multiple_times_row_to_row(alpha, row, k)
+
+    def computer_solution(self):
+        """计算方程式解的情况，高斯消去法求解函数"""
+        try:
+            return self.do_gaussian_elimination_and_extract_solution()
+
+        except Exception as e:
+            if (str(e) == self.NO_SOLUTIONS_MSG or
+                str(e) == self.INF_SOLUTIONS_MSG ):
+                return str(e)
+            else:
+                raise e
+
+    def do_gaussian_elimination_and_parameterization_solution(self):
+        """高斯求解，判断无解、无数解、单一解"""
+        rref = self.compute_rref()
+        # 判断是否无解
+        rref.raise_exception_if_contradictory_equation()
+        # 判断是否多解
+        rref.raise_exception_if_too_few_pivots()
+        num_variables = rref.dimension
+        solution_coordinates = [rref.planes[i].constant_term for i in
+                                range(num_variables)]
+        return Vector(solution_coordinates)
+
+    def raise_exception_if_contradictory_equation(self):
+        """如果有矛盾引发异常"""
+        for p in self.planes:
+            try:
+                p.first_nonzero_index(p.normal_vector.coordinates)
+            except Exception as e:
+                if str(e) == 'No nonzero elements found':
+                    constant_term = MyDecimal(p.constant_term)
+                    if not constant_term.is_near_zero():
+                        raise Exception(self.NO_SOLUTIONS_MSG)
+                else:
+                    raise e
+
+    def raise_exception_if_too_few_pivots(self):
+        """判断为多个解"""
+        pivote_indices = self.indices_of_first_nonzero_terms_in_each_row()
+        num_pivots = sum([1 if index >=0 else 0 for index in pivote_indices])
+        num_variables = self.dimension
+        if num_pivots < num_variables:
+            raise Exception(self.INF_SOLUTIONS_MSG)
+
+    def extract_direction_vectors_for_parametrization(self):
+        """参数化解集"""
+        num_variables = self.dimension
+
+
 
 
 
