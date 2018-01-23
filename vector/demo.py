@@ -160,11 +160,19 @@ p2 = Plane(normal_vector=Vector(['1','-1','1']), constant_term='2')
 p3 = Plane(normal_vector=Vector(['1','2','-5']), constant_term='3')
 s = LinearSystem([p1,p2,p3])
 r = s.compute_rref()
-
 if not (r[0] == Plane(normal_vector=Vector(['1','0','0']), constant_term=Decimal('23')/Decimal('9')) and
         r[1] == Plane(normal_vector=Vector(['0','1','0']), constant_term=Decimal('7')/Decimal('9')) and
         r[2] == Plane(normal_vector=Vector(['0','0','1']), constant_term=Decimal('2')/Decimal('9'))):
     print('test case 4 failed')
 
+
+
+
+# 多解的情况，后续需要些输出函数
+p1 = Plane(normal_vector=Vector(['0.786','0.786','0.588']), constant_term='-0.714')
+p2 = Plane(normal_vector=Vector(['-0.131','-0.131','0.244']), constant_term='0.319')
+s = LinearSystem([p1,p2])
 r = s.computer_solution()
-print(r)
+print(r.basepoint)
+print(r.direction_vectors[0])
+

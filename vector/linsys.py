@@ -152,7 +152,7 @@ class LinearSystem():
     def computer_solution(self):
         """计算方程式解的情况，高斯消去法求解函数"""
         try:
-            return self.do_gaussian_elimination_and_extract_solution()
+            return self.do_gaussian_elimination_and_parameterization_solution()
 
         except Exception as e:
             if (str(e) == self.NO_SOLUTIONS_MSG or
@@ -167,11 +167,57 @@ class LinearSystem():
         # 判断是否无解
         rref.raise_exception_if_contradictory_equation()
         # 判断是否多解
-        rref.raise_exception_if_too_few_pivots()
-        num_variables = rref.dimension
-        solution_coordinates = [rref.planes[i].constant_term for i in
-                                range(num_variables)]
-        return Vector(solution_coordinates)
+        # rref.raise_exception_if_too_few_pivots()
+        # num_variables = rref.dimension
+        # solution_coordinates = [rref.planes[i].constant_term for i in
+        #                         range(num_variables)]
+        # return Vector(solution_coordinates)
+        # 多个解，参数化解集
+        # 方向向量
+        direction_vectors = rref.extract_direction_vectors_for_parametrization()
+        # 基准点
+        basepoint = rref.extract_basepoint_for_parametrization()
+        # 输出结果
+        return Parameterization(basepoint, direction_vectors)
+
+    def extract_direction_vectors_for_parametrization(self):
+        """参数化解集,计算方向向量"""
+        # 方程的位数
+        num_variables = self.dimension
+        # 主变量的位置
+        pivot_indices = self.indices_of_first_nonzero_terms_in_each_row()
+        # 差集反应出需要参数化表示的位置
+        free_variable_indices = set(range(num_variables)) - set(pivot_indices)
+        # 返回值 每个主变量参数化的值
+        direction_vectors = []
+
+        for free_var in free_variable_indices:
+            vector_coords = [0] * num_variables
+            vector_coords[free_var] = 1
+            for i,p in enumerate(self.planes):
+                pivot_var = pivot_indices[i]
+                if pivot_var < 0:
+                    break
+                vector_coords[pivot_var] = -p.normal_vector.coordinates[free_var
+                ]
+            direction_vectors.append(Vector(vector_coords))
+        return direction_vectors
+
+    def extract_basepoint_for_parametrization(self):
+        """计算基准点"""
+        num_variables = self.dimension
+        pivot_indices = self.indices_of_first_nonzero_terms_in_each_row()
+
+        basepoint_coods = [0] * num_variables
+
+        for i,p in enumerate(self.planes):
+            pivot_var = pivot_indices[i]
+            if pivot_var < 0 :
+                break
+            basepoint_coods[pivot_var] = p.constant_term
+
+        return Vector(basepoint_coods)
+
 
     def raise_exception_if_contradictory_equation(self):
         """如果有矛盾引发异常"""
@@ -194,9 +240,7 @@ class LinearSystem():
         if num_pivots < num_variables:
             raise Exception(self.INF_SOLUTIONS_MSG)
 
-    def extract_direction_vectors_for_parametrization(self):
-        """参数化解集"""
-        num_variables = self.dimension
+
 
 
 
